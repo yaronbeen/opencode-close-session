@@ -157,6 +157,21 @@ mkdir -p "$STATE_DIR"
 ok "Log directory ready at $STATE_DIR/"
 
 # ---------------------------------------------------------------------------
+# 6. Activate pre-commit hook (TruffleHog secret scanning)
+# ---------------------------------------------------------------------------
+if git -C "$SCRIPT_DIR" rev-parse --git-dir &>/dev/null; then
+  info "Activating TruffleHog pre-commit hook..."
+  git -C "$SCRIPT_DIR" config --local core.hooksPath hooks
+  ok "Pre-commit hook active (hooks/pre-commit)"
+  if command -v trufflehog &>/dev/null; then
+    ok "TruffleHog found -- commits will be scanned for secrets"
+  else
+    warn "TruffleHog not installed -- hook will warn but not block"
+    warn "Install it: https://github.com/trufflesecurity/trufflehog#installation"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
 # Done
 # ---------------------------------------------------------------------------
 echo ""

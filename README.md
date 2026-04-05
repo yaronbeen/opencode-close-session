@@ -146,6 +146,8 @@ opencode-close-session/
 ├── skills/
 │   └── close-session/
 │       └── SKILL.md                 # OpenCode skill definition
+├── hooks/
+│   └── pre-commit                   # TruffleHog secret scan (auto-activated)
 ├── extras/
 │   ├── claude-code-hook.sh          # Stop hook for Claude Code users
 │   └── claude-md-snippet.md         # CLAUDE.md instructions to copy
@@ -161,7 +163,13 @@ opencode-close-session/
 
 ## Contributing
 
-This repo uses [TruffleHog](https://github.com/trufflesecurity/trufflehog) as a pre-commit hook to prevent accidental secret leaks. If you have TruffleHog installed, commits are automatically scanned. See `.pre-commit-config.yaml`.
+This repo uses [TruffleHog](https://github.com/trufflesecurity/trufflehog) as a pre-commit hook to prevent accidental secret leaks. The hook lives in `hooks/pre-commit` and is activated automatically by `./install.sh` (via `git config core.hooksPath hooks`). Every commit is scanned for secrets before it's allowed through.
+
+If you clone without running the installer, activate the hook manually:
+
+```bash
+git config core.hooksPath hooks
+```
 
 ## Requirements
 

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Pre-commit hook: TruffleHog secret scan
+#
+# Scans staged changes for leaked secrets before allowing a commit.
+# This file lives in hooks/ and is activated by:
+#   git config core.hooksPath hooks
+#
+# Install TruffleHog: https://github.com/trufflesecurity/trufflehog#installation
+
+set -euo pipefail
+
+if ! command -v trufflehog &>/dev/null; then
+  echo "WARNING: trufflehog not installed -- skipping secret scan"
+  echo "Install it: https://github.com/trufflesecurity/trufflehog#installation"
+  exit 0
+fi
+
+echo "Running TruffleHog secret scan on staged changes..."
+
+# --since-commit HEAD scans only what's new since the last commit (i.e. staged changes)
+# --fail exits non-zero if secrets are found
+# --no-update skips the self-update check
+trufflehog git file://. --since-commit HEAD --no-update --fail
+
+echo "TruffleHog: clean"
