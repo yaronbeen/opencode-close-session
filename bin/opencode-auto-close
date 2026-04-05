@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+
+# opencode-auto-close -- wrapper that auto-runs /close-session after an
+# interactive OpenCode TUI session exits.
+#
+# It preserves normal behavior for non-TUI subcommands such as
+# `opencode run`, `opencode session`, `opencode --help`, etc.
+#
+# Disable for a single invocation:
+#   OPENCODE_AUTO_CLOSE=0 opencode
+#
+# Part of: https://github.com/yaronbe/opencode-close-session
+
+set -u
+
+# ---------------------------------------------------------------------------
+# Locate the real opencode binary
+# ---------------------------------------------------------------------------
+find_real_opencode() {
+  # If installed via the installer, a breadcrumb file records the real path.
+  local breadcrumb="${XDG_STATE_HOME:-$HOME/.local/state}/opencode/real-opencode-path"
+  if [[ -f "$breadcrumb" ]]; then
+    local p
+    p="$(< "$breadcrumb")"
+    if [[ -x "$p" ]]; then
+      echo "$p"
+      return 0
+    fi
+  fi
+
+  # Fall back to PATH lookup, skipping ourselves.
+  local self
+  self="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+
+  local candidate
+  while IFS= read -r -d '' candidate; do
+    candidate="$(readlink -f "$candidate" 2>/dev/null || realpath "$candidate" 2>/dev/null || echo "$candidate")"
+    if [[ "$candidate" != "$self" && -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done < <(
+    IFS=':'
+    for dir in $PATH; do
+      [[ -x "$dir/opencode" ]] && printf '%s\0' "$dir/opencode"
+    done
+  )
+
+  # Last resort -- maybe it's a global npm install
+  local npm_bin
+  npm_bin="$(npm bin -g 2>/dev/null)/opencode"
+  if [[ -x "$npm_bin" ]]; then
+    echo "$npm_bin"
+    return 0
+  fi
+
+  echo >&2 "opencode-auto-close: cannot find the real opencode binary"
+  return 1
+}
+
+REAL_OPENCODE="$(find_real_opencode)" || exit 1
+
+LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/opencode"
+LOG_FILE="${LOG_DIR}/close-session.log"
+
+mkdir -p "${LOG_DIR}"
+
+# ---------------------------------------------------------------------------
+# Subcommands that are NOT interactive TUI launches
+# ---------------------------------------------------------------------------
+KNOWN_SUBCOMMANDS=(
+  completion acp mcp run debug providers auth agent upgrade uninstall
+  serve web models stats export import github pr session plugin db
+)
+
+AUTO_CLOSE="${OPENCODE_AUTO_CLOSE:-1}"
+TARGET_DIR="$PWD"
+SHOULD_CLOSE=0
+_CLEANED_UP=0
+
+is_known_subcommand() {
+  local value="$1"
+  for cmd in "${KNOWN_SUBCOMMANDS[@]}"; do
+    if [[ "$value" == "$cmd" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Walk the argument list to figure out the target directory (if any) and
+# whether this is a bare TUI launch vs. a subcommand invocation.
+detect_target_dir() {
+  local expect_value=0
+  local arg
+
+  for arg in "$@"; do
+    if [[ "$expect_value" -eq 1 ]]; then
+      expect_value=0
+      continue
+    fi
+
+    case "$arg" in
+      -m|--model|-s|--session|--prompt|--agent|--port|--hostname)
+        expect_value=1
+        continue
+        ;;
+      --*)
+        continue
+        ;;
+      -*)
+        continue
+        ;;
+    esac
+
+    if is_known_subcommand "$arg"; then
+      return 1   # not a TUI launch
+    fi
+
+    if [[ -d "$arg" ]]; then
+      TARGET_DIR="$(cd "$arg" && pwd)"
+      return 0
+    fi
+  done
+
+  return 0
+}
+
+launch_closeout() {
+  local repo_root
+  repo_root="$(git -C "$TARGET_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -z "$repo_root" ]]; then
+    return 0
+  fi
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Launching close-session for $repo_root" >>"$LOG_FILE"
+  nohup bash -lc "cd \"$repo_root\" && \"$REAL_OPENCODE\" run --command close-session" \
+    >>"$LOG_FILE" 2>&1 </dev/null &
+}
+
+cleanup() {
+  if [[ "$_CLEANED_UP" -eq 1 ]]; then
+    return 0
+  fi
+  _CLEANED_UP=1
+
+  if [[ "$AUTO_CLOSE" == "1" && "$SHOULD_CLOSE" -eq 1 ]]; then
+    launch_closeout
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+# Non-interactive / management usage -- pass through directly.
+if [[ "$AUTO_CLOSE" != "1" ]]; then
+  exec "$REAL_OPENCODE" "$@"
+fi
+
+if detect_target_dir "$@"; then
+  SHOULD_CLOSE=1
+fi
+
+trap 'cleanup' EXIT HUP TERM INT
+
+"$REAL_OPENCODE" "$@"
+status=$?
+exit "$status"

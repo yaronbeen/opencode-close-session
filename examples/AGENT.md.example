@@ -1,0 +1,57 @@
+# AGENT.md
+
+## Start Here
+
+1. Read the latest handover: `ls -1 handover/ | tail -1`
+2. Review `TECH_DEBT.md` -- address P0 items first
+3. Skim `LEARNINGS.md` for relevant context
+
+## Purpose & Context
+
+<!-- What does this project do? Who is it for? What's the current status? -->
+
+**Project**: [Your project name]
+**Status**: [Active development / Maintenance / MVP / etc.]
+**Description**: [1-2 sentences about what this does]
+
+## Architecture / Design
+
+<!-- High-level system design. Data flow. Key components and how they connect. -->
+
+```
+[Component A] --> [Component B] --> [Component C]
+```
+
+## Decisions Log
+
+<!-- Append-only. Never edit past entries. Only add new ones. -->
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| YYYY-MM-DD | Example: Chose SQLite over Postgres | Simpler deployment, sufficient for expected scale |
+
+## Runbook / Operations
+
+<!-- Common commands, monitoring, troubleshooting, maintenance -->
+
+```bash
+# Start development
+# Run tests
+# Deploy
+```
+
+## Project File Structure
+
+<!-- What each file/directory does -->
+
+```
+├── src/           # Source code
+├── tests/         # Test files
+└── ...
+```
+
+## References
+
+- [LEARNINGS.md](./LEARNINGS.md) -- accumulated project knowledge
+- [TECH_DEBT.md](./TECH_DEBT.md) -- prioritized technical debt backlog
+- [handover/](./handover/) -- session handover files

@@ -1,0 +1,28 @@
+# TECH_DEBT.md
+
+Prioritized technical debt backlog. Reviewed at the start of each session.
+
+## P0 -- Next Session
+
+<!-- Address these immediately -->
+
+## P1 -- This Week
+
+<!-- Important but not blocking -->
+
+## P2 -- When Convenient
+
+<!-- Would be nice to fix -->
+
+## P3 -- Nice to Have
+
+<!-- Low priority improvements -->
+
+---
+
+## Resolved Items
+
+<!-- Move resolved items here with the date -->
+
+| Date | Item | Resolution |
+|------|------|------------|
