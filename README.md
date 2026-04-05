@@ -159,6 +159,10 @@ opencode-close-session/
     └── handover-001.md.example      # Template
 ```
 
+## Contributing
+
+This repo uses [TruffleHog](https://github.com/trufflesecurity/trufflehog) as a pre-commit hook to prevent accidental secret leaks. If you have TruffleHog installed, commits are automatically scanned. See `.pre-commit-config.yaml`.
+
 ## Requirements
 
 - [OpenCode](https://opencode.ai) installed and working
