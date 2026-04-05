@@ -4,7 +4,7 @@ set -euo pipefail
 # install.sh -- one-command installer for opencode-close-session
 #
 # Usage:
-#   git clone https://github.com/yaronbe/opencode-close-session.git
+#   git clone https://github.com/yaronbeen/opencode-close-session.git
 #   cd opencode-close-session
 #   ./install.sh
 #

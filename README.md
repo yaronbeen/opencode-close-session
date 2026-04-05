@@ -44,7 +44,7 @@ The closeout runs in the background -- you don't wait for it. Logs go to `~/.loc
 ## Quick Start
 
 ```bash
-git clone https://github.com/yaronbe/opencode-close-session.git
+git clone https://github.com/yaronbeen/opencode-close-session.git
 cd opencode-close-session
 ./install.sh
 ```

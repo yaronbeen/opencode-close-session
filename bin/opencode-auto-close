@@ -9,7 +9,7 @@
 # Disable for a single invocation:
 #   OPENCODE_AUTO_CLOSE=0 opencode
 #
-# Part of: https://github.com/yaronbe/opencode-close-session
+# Part of: https://github.com/yaronbeen/opencode-close-session
 
 set -u
 
